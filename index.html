@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marvel Heroes Assemble</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    :root{
+      --primary: #e50914;
+      --secondary-black:#000000;
+      --secondary-white:#ffffff;
+      --accent: #d4af37;
+      --bg: #0b0b0b;
+      --card: #161616;
+      --muted: #bdbdbd;
+
+      /* Clock specific variables */
+      --clock-bg: rgba(22, 22, 22, 0.85);
+      --clock-ring-color: var(--primary);
+      --clock-dot-color: #ffffff;
+      --clock-text-color: #e6e6e6;
+      --clock-rim-animation-speed: 25s;
+    }
+
+    body {
+      position: relative;
+      background: url('https://media.tenor.com/8ctGtM0JDmUAAAAM/marvel-avengers.gif') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--secondary-white);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      min-height: 100dvh;
+      padding-bottom: 140px;
+      z-index: 0;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: -1;
+    }
+
+    header{
+      text-align: center;
+      padding: 32px 16px 16px;
+      transform: translateY(-100px);
+      opacity: 0;
+      animation: slideFromTop 1.2s ease-out 0.5s forwards;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    @keyframes slideFromTop {
+      from { opacity: 0; transform: translateY(-100px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand{
+      display: inline-flex; align-items: center; gap: 14px;
+    }
+    .brand .marvel-box{
+      background: var(--primary);
+      color: var(--secondary-white);
+      padding: 10px 14px; letter-spacing: 2px; font-weight: 900; font-size: 18px;
+      border: 2px solid #fff; box-shadow: 0 0 0 3px var(--primary) inset;
+    }
+    h1{
+      margin: 8px 0 4px; font-size: clamp(28px, 4.2vw, 48px);
+      line-height: 1.05; text-shadow: 0 2px 0 #000, 0 0 18px rgba(229,9,20,.45);
+    }
+    .tagline{
+      color: var(--muted); font-size: clamp(14px, 2.5vw, 18px);
+    }
+
+    /* Shimmer requirement text */
+    .requirement-text {
+      background: linear-gradient(90deg, #e50914, #ffffff, #e50914);
+      background-size: 200% 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 2s linear infinite;
+      font-weight: 700;
+      font-size: clamp(16px, 3vw, 20px);
+      margin: 8px 0 4px;
+      text-align: center;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .logo-wrap{ display:flex; justify-content:center; padding: 8px 0 0; }
+    .avengers-logo{ width: 120px; height: 120px; filter: drop-shadow(0 0 8px rgba(212,175,55,.35)); border-radius: 8px; }
+
+    .grid{
+      display: grid; gap: 18px; padding: 24px 16px 40px; max-width: 1100px; margin: 0 auto;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    @media (min-width: 720px){ .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1024px){ .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+    .card{
+      background: linear-gradient(180deg, #1d1d1d, #121212);
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 360px;
+      transform: translateY(100px);
+      opacity: 0;
+      animation: slideFromBottom 1s ease forwards;
+      position: relative;
+    }
+
+    /* Card shimmer effect - covering entire card */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(229,9,20,0.1) 40%, 
+        rgba(255,255,255,0.3) 50%, 
+        rgba(229,9,20,0.1) 60%, 
+        transparent 70%);
+      background-size: 200% 200%;
+      border-radius: 16px;
+      animation: cardShimmer 3s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes cardShimmer {
+      0% { background-position: -200% -200%; }
+      100% { background-position: 200% 200%; }
+    }
+
+    /* stagger animation for cards */
+    .card:nth-child(1){ animation-delay: 1.5s; }
+    .card:nth-child(2){ animation-delay: 1.7s; }
+    .card:nth-child(3){ animation-delay: 1.9s; }
+    .card:nth-child(4){ animation-delay: 2.1s; }
+    .card:nth-child(5){ animation-delay: 2.3s; }
+    .card:nth-child(6){ animation-delay: 2.5s; }
+    .card:nth-child(7){ animation-delay: 2.7s; }
+    .card:nth-child(8){ animation-delay: 2.9s; }
+
+    @keyframes slideFromBottom {
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .card:hover{
+      box-shadow: 0 0 20px rgba(229,9,20,0.8);
+      border-color: var(--primary);
+      transform: translateY(-6px);
+      transition: all 0.3s ease;
+    }
+
+    .thumb{ position: relative; background: #0f0f0f; z-index: 2; }
+    .thumb img{ width:100%; aspect-ratio: 16/10; object-fit: cover; display:block; }
+    .badge{
+      position:absolute; top: 10px; left: 10px; background: var(--primary);
+      padding: 6px 10px; font-size: 12px; border: 1px solid #fff; font-weight: 800; letter-spacing: 1px;
+      z-index: 3;
+    }
+    .content{ padding: 14px 16px 8px; position: relative; z-index: 2; }
+    .hero-name{ font-weight: 800; font-size: 20px; letter-spacing:.3px; }
+    .power{ color: var(--muted); margin-top: 6px; }
+    .actions{ padding: 0 16px 16px; position: relative; z-index: 2; }
+
+    /* Updated button to red color */
+    .btn{
+      background: linear-gradient(180deg, var(--primary), #a4060f);
+      color: var(--secondary-white);
+      border: 1px solid #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 800;
+      letter-spacing: .4px;
+      cursor: pointer;
+      width: 100%;
+      transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+      box-shadow: 0 0 0 0 rgba(229,9,20,.0);
+    }
+    .btn:hover{ transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 24px rgba(229,9,20,.35); }
+    .btn:disabled{ opacity: .55; cursor: not-allowed; filter: grayscale(.2); }
+    .btn.selected { background: linear-gradient(180deg, #4a4a4a, #2a2a2a); color: #ccc; }
+
+    .team-panel{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: rgba(0,0,0,.78); backdrop-filter: blur(8px); border-top: 2px solid var(--primary); padding: 12px 12px 16px; box-shadow: 0 -10px 26px rgba(0,0,0,.45); }
+    .team-inner{ max-width: 1100px; margin: 0 auto; display: grid; gap: 10px; grid-template-columns: 1fr auto; align-items: start; }
+    .team-list{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 40px; padding-right: 8px; }
+    .chip{ display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; background: #181818; border: 1px solid #2a2a2a; border-radius: 999px; }
+    .chip .name{ font-weight: 700; }
+    .chip button{ background: transparent; color: #fff; border: none; font-size: 16px; cursor: pointer; line-height: 1; }
+
+    .panel-right{ display: grid; gap: 8px; grid-template-columns: auto auto; align-items: center; }
+    .count{ font-weight: 900; letter-spacing: .4px; }
+
+    .deploy{ background: linear-gradient(180deg, var(--primary), #a4060f); color: #fff; border-radius: 12px; padding: 10px 16px; border: 1px solid #fff; font-weight: 900; letter-spacing: .5px; cursor: pointer; white-space: nowrap; animation: glow 1.6s ease-in-out infinite; }
+    @keyframes glow{ 0%,100%{ box-shadow: 0 0 0 rgba(229,9,20,0.0); transform: translateY(0); } 50%{ box-shadow: 0 0 24px rgba(229,9,20,.6); transform: translateY(-1px); } }
+
+    footer{ text-align:center; color: var(--muted); padding: 18px 10px 130px; }
+
+    /* Rectangle Digital Clock with full Avengers coverage */
+    .digital-clock-container {
+        max-width: 1100px;
+        margin: 0 auto 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 0 16px;
+    }
+    .digital-clock-wrapper {
+        position: relative;
+        width: 350px;
+        height: 180px;
+        font-family: 'Segoe UI', sans-serif;
+        color: var(--clock-text-color);
+        background: var(--clock-bg);
+        border-radius: 15px;
+        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6), 0 0 25px rgba(229, 9, 20, 0.3);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-image: url('https://i.pinimg.com/1200x/9b/87/73/9b8773be0907d583c8d0a95073cdb8af.jpg');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center center;
+        border: 2px solid var(--clock-ring-color);
+        overflow: hidden;
+    }
+    .digital-clock-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1;
+    }
+    .digital-clock-wrapper::after {
+        content: '';
+        position: absolute;
+        top: -4px; left: -4px; right: -4px; bottom: -4px;
+        border-radius: 19px;
+        border: 3px solid var(--clock-ring-color);
+        box-shadow: 0 0 15px var(--clock-ring-color);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 15px var(--clock-ring-color); }
+      50% { box-shadow: 0 0 25px var(--clock-ring-color), 0 0 35px var(--clock-ring-color); }
+    }
+    .clock-time {
+        font-size: 3.5rem;
+        font-weight: 100;
+        line-height: 1;
+        letter-spacing: -1px;
+        text-shadow: 0 0 20px rgba(229, 9, 20, 0.8), 0 0 30px rgba(0, 0, 0, 0.8);
+        position: relative;
+        z-index: 2;
+        margin-top: -10px;
+        font-family: 'Courier New', monospace;
+        color: #ffffff;
+    }
+    .clock-date {
+        position: relative;
+        z-index: 2;
+        font-size: 1.1rem;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 0 8px rgba(229, 9, 20, 0.4), 0 0 15px rgba(0, 0, 0, 0.8);
+        margin-top: 15px;
+    }
+
+    /* Popup styles */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #1a1a1a;
+      border: 2px solid var(--primary);
+      color: var(--secondary-white);
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 100;
+      box-shadow: 0 0 20px rgba(0,0,0,.5);
+      font-size: 1.2rem;
+      font-weight: 600;
+      animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+    }
+    @keyframes popIn {
+      from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+      to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    h1{
+      margin: 8px 0 4px; font-size: clamp(36px, 6vw, 64px);
+      line-height: 1.05; text-shadow: 0 2px 0 #000, 0 0 18px rgba(229,9,20,.45);
+      color: #ffffff;
+      background: linear-gradient(to top, #e50914, #000000);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: 'Impact', 'Arial Black', 'Bebas Neue', 'Oswald', sans-serif;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(229,9,20,0.6);
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-audio" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <header>
+    <div class="brand">
+      <span class="marvel-box">MARVEL</span>
+      <span style="font-weight:800; letter-spacing:.6px;">HEROES</span>
+    </div>
+    <h1>Marvel Heroes Assemble</h1>
+    <p class="tagline">Choose your squad and save the universe!</p>
+    <div class="requirement-text">Minimum 6 Heroes Required for Deployment</div>
+    <div class="logo-wrap">
+      <img src="assets/videos/avenger-removebg-preview.png" alt="Avengers Logo" class="avengers-logo">
+    </div>
+  </header>
+
+  <main>
+    <section class="grid" id="heroGrid"></section>
+    
+    <div class="digital-clock-container">
+      <div class="digital-clock-wrapper">
+          <span class="clock-date" id="date"></span>
+          <span class="clock-time" id="time"></span>
+      </div>
+    </div>
+  </main>
+
+  <section class="team-panel">
+    <div class="team-inner">
+      <div class="team-list" id="teamList"></div>
+      <div class="panel-right">
+        <div class="count" id="teamCount">Total Heroes Selected: 0</div>
+        <button id="deployBtn" class="deploy" type="button">Deploy Team</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="clock-container" style="display:none">
+      <canvas id="clock-avengersA" class="clock-logo"></canvas>
+      <span id="clock">--:--:--</span>
+    </div>
+  </footer>
+
+  <script>
+    const HEROES = [
+      {
+        id: 'ironman',
+        name: 'Iron Man',
+        power: 'Genius, billionaire, powered armor.',
+        img: 'https://images.unsplash.com/photo-1635863138275-d9b33299680b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aXJvbiUyMG1hbnxlbnwwfHwwfHx8MA%3D%3D'
+      },
+      {
+        id: 'cap',
+        name: 'Captain America',
+        power: 'Super soldier with vibranium shield.',
+        img: 'https://i.pinimg.com/736x/71/e3/89/71e3898a859fdc96b376c5cbee8115e3.jpg'
+      },
+      {
+        id: 'thor',
+        name: 'Thor',
+        power: 'God of Thunder, wielder of Mjölnir.',
+        img: 'https://cdn.pixabay.com/photo/2023/08/01/12/31/ai-generated-8162871_1280.jpg'
+      },
+      {
+        id: 'hulk',
+        name: 'Hulk',
+        power: 'Limitless strength when enraged.',
+        img: 'https://i.pinimg.com/736x/70/d5/10/70d510a0926f3ff8b7d32e3d6b679561.jpg'
+      },
+      {
+        id: 'blackwidow',
+        name: 'Black Widow',
+        power: 'Master spy and martial artist.',
+        img: 'https://cdn.pixabay.com/photo/2022/10/29/08/12/superhero-7554694_1280.jpg'
+      },
+      {
+        id: 'spiderman',
+        name: 'Spider-Man',
+        power: 'Superhuman strength and spider-sense.',
+        img: 'https://i.pinimg.com/736x/cf/12/e1/cf12e1be0ccf60e9f333ac8a3efaa201.jpg'
+      },
+      {
+        id: 'drstrange',
+        name: 'Doctor Strange',
+        power: 'Master of the mystic arts.',
+        img: 'https://cdn.pixabay.com/photo/2024/05/14/10/51/ai-generated-8760871_1280.png'
+      },
+      {
+        id: 'blackpanther',
+        name: 'Black Panther',
+        power: 'Vibranium suit and enhanced senses.',
+        img: 'https://i.pinimg.com/1200x/d4/3e/ac/d43eac71c634cbf3f7d09277d4a66767.jpg'
+      }
+    ];
+
+    const heroGrid = document.getElementById('heroGrid');
+    const teamList = document.getElementById('teamList');
+    const teamCount = document.getElementById('teamCount');
+    const deployBtn = document.getElementById('deployBtn');
+
+    // Avengers A logo
+    function drawAvengersA(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const center = size / 2;
+      const radius = size * 0.45;
+      const arcWidth = 10;
+      const aHeight = size * 0.45;
+      const aWidth = size * 0.4;
+      
+      ctx.clearRect(0, 0, size, size);
+      
+      // Draw outer circle
+      ctx.beginPath();
+      ctx.arc(center, center, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Draw A
+      ctx.beginPath();
+      ctx.moveTo(center - aWidth / 2, center + aHeight / 2 - 10);
+      ctx.lineTo(center, center - aHeight / 2);
+      ctx.lineTo(center + aWidth / 2, center + aHeight / 2 - 10);
+      ctx.lineTo(center + 5, center + aHeight / 2);
+      ctx.lineTo(center - 5, center + aHeight / 2);
+      ctx.closePath();
+      ctx.fillStyle = '#d4af37';
+      ctx.fill();
+
+      // Horizontal bar
+      ctx.beginPath();
+      ctx.moveTo(center - aWidth * 0.25, center + aHeight * 0.1);
+      ctx.lineTo(center + aWidth * 0.25, center + aHeight * 0.1);
+      ctx.strokeStyle = '#222';
+      ctx.lineWidth = 15;
+      ctx.stroke();
+    }
+
+    function createHeroCard(hero) {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.innerHTML = `
+        <div class="thumb">
+          <img src="${hero.img}" alt="${hero.name}" loading="lazy">
+          <div class="badge">HERO</div>
+        </div>
+        <div class="content">
+          <div class="hero-name">${hero.name}</div>
+          <div class="power">${hero.power}</div>
+        </div>
+        <div class="actions">
+          <button class="btn" data-hero-id="${hero.id}" type="button">SELECT HERO</button>
+        </div>
+      `;
+      return card;
+    }
+
+    function populateGrid() {
+      HEROES.forEach(hero => {
+        const card = createHeroCard(hero);
+        heroGrid.appendChild(card);
+      });
+    }
+
+    function getDeploymentMessage(currentCount) {
+      const remaining = 6 - currentCount;
+      if (remaining === 5) return "Add 5 more heroes to deploy the team";
+      if (remaining === 4) return "Add 4 more heroes to deploy the team";
+      if (remaining === 3) return "Add 3 more heroes to deploy the team";
+      if (remaining === 2) return "Add 2 more heroes to deploy the team";
+      if (remaining === 1) return "Add 1 more hero to deploy the team";
+      return "Team ready for deployment!";
+    }
+
+    function handleSelectHero(event) {
+      if (!event.target.classList.contains('btn')) return;
+
+      const button = event.target;
+      const heroId = button.dataset.heroId;
+      const hero = HEROES.find(h => h.id === heroId);
+      const isSelected = teamList.querySelector(`[data-hero-id="${heroId}"]`);
+
+      if (isSelected) {
+        // Remove from team
+        isSelected.remove();
+        button.textContent = 'SELECT HERO';
+        button.disabled = false;
+        button.classList.remove('selected');
+      } else if (teamList.children.length < 6) {
+        // Add to team
+        const chip = document.createElement('div');
+        chip.classList.add('chip');
+        chip.dataset.heroId = hero.id;
+        chip.innerHTML = `
+          <span class="name">${hero.name}</span>
+          <button type="button">&times;</button>
+        `;
+        teamList.appendChild(chip);
+        
+        if (teamList.children.length === 6) {
+          button.textContent = 'SELECTED';
+          button.disabled = true;
+          button.classList.add('selected');
+        }
+      }
+
+      updateTeamCount();
+    }
+
+    function updateTeamCount() {
+      const count = teamList.children.length;
+      const message = getDeploymentMessage(count);
+      teamCount.textContent = `Total Heroes Selected: ${count} - ${message}`;
+      deployBtn.disabled = count !== 6;
+    }
+    
+    // Clock functionality (Digital with hours:minutes:seconds)
+    const timeElement = document.getElementById('time');
+    const dateElement = document.getElementById('date');
+
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    function updateDigitalClock() {
+      const now = new Date();
+      const day = days[now.getDay()];
+      const month = months[now.getMonth()];
+      const date = now.getDate();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const seconds = now.getSeconds().toString().padStart(2, '0');
+
+      timeElement.textContent = `${hours}:${minutes}:${seconds}`;
+      dateElement.textContent = `${day} ${month} ${date}`;
+    }
+
+    // Deploy team functionality
+    deployBtn.addEventListener('click', () => {
+        const heroCount = teamList.children.length;
+        if (heroCount === 6) {
+            const popup = document.createElement('div');
+            popup.classList.add('popup');
+            popup.innerHTML = `✅ "Your Marvel Team of ${heroCount} heroes is ready to save the world!"`;
+            document.body.appendChild(popup);
+            setTimeout(() => {
+                popup.remove();
+            }, 3000);
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      populateGrid();
+      heroGrid.addEventListener('click', handleSelectHero);
+      teamList.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+          const heroId = e.target.parentElement.dataset.heroId;
+          const selectBtn = heroGrid.querySelector(`[data-hero-id="${heroId}"]`);
+          if (selectBtn) {
+            selectBtn.textContent = 'SELECT HERO';
+            selectBtn.disabled = false;
+            selectBtn.classList.remove('selected');
+          }
+          e.target.parentElement.remove();
+          updateTeamCount();
+        }
+      });
+      updateTeamCount();
+      
+      // Start the clock
+      updateDigitalClock();
+      setInterval(updateDigitalClock, 1000);
+      
+      const audio = document.getElementById('bg-audio');
+      document.addEventListener('click', () => {
+        if (audio.paused) {
+          audio.play();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
